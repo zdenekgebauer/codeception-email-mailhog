@@ -41,6 +41,11 @@ Filters emails to only keep those that are received by the provided address
 openNextUnreadEmail()
 ```
 Pops the most recent unread email and assigns it as the email to conduct tests on
+```
+grabHeadersFromEmail()
+```
+Grabs headers from the opened email and returns them as an array
+
 
 ### Example Test
 Here is a simple scenario where we test the content of an email.  For a detailed list of all available test methods, please refer to the [Codeception Email Testing Framework][CodeceptionEmailTestingFramework].
