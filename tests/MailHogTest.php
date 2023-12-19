@@ -300,6 +300,35 @@ JSON;
         $this->mailHog->openNextUnreadEmail();
     }
 
+    public function testGrabHeaders(): void
+    {
+        $this->mailHog->setUnreadInbox(json_decode(self::$jsonEmail, false));
+
+        /** @var MockObject&ResponseInterface $response */
+        $response = $this->getMockBuilder(ResponseInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $response->expects(self::atLeastOnce())
+            ->method('getBody')
+            ->willReturn(json_encode(json_decode(self::$jsonEmail)[0]));
+
+        /** @var MockObject&ClientInterface $client */
+        $client = $this->getMockBuilder(Client::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $client->expects(self::atLeastOnce())
+            ->method('request')
+            ->with('GET', '/api/v1/messages/1')
+            ->willReturn($response);
+
+        $this->mailHog->setClient($client);
+
+        $this->mailHog->openNextUnreadEmail();
+
+        $headers = $this->mailHog->grabHeadersFromEmail();
+        self::assertArrayHasKey('From', $headers);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

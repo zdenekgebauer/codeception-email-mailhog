@@ -217,6 +217,20 @@ class MailHog extends Module
     }
 
     /**
+     * Returns the email headers
+     *
+     * @return array Headers
+     */
+    public function grabHeadersFromEmail()
+    {
+        $email = $this->getOpenedEmail();
+        if (isset($email->Content->Headers)) {
+            return (array)$email->Content->Headers;
+        }
+        return [];
+    }
+
+    /**
      * Get Opened Email.
      *
      * Main method called by the tests, providing either the currently open email or the next unread one
