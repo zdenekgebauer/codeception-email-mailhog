@@ -310,7 +310,7 @@ JSON;
             ->getMock();
         $response->expects(self::atLeastOnce())
             ->method('getBody')
-            ->willReturn(json_encode(json_decode(self::$jsonEmail)[0]));
+            ->willReturn(Utils::streamFor(json_encode(json_decode(self::$jsonEmail)[0])));
 
         /** @var MockObject&ClientInterface $client */
         $client = $this->getMockBuilder(Client::class)
