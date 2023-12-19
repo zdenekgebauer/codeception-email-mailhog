@@ -6,6 +6,7 @@ use Codeception\Lib\ModuleContainer;
 use Codeception\Module\MailHog;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -62,7 +63,7 @@ JSON;
             ->getMock();
         $response->expects(self::atLeastOnce())
             ->method('getBody')
-            ->willReturn(self::$jsonEmail);
+            ->willReturn(Utils::streamFor(self::$jsonEmail));
 
         /** @var MockObject&ClientInterface $client */
         $client = $this->getMockBuilder(Client::class)
@@ -271,7 +272,7 @@ JSON;
             ->getMock();
         $response->expects(self::atLeastOnce())
             ->method('getBody')
-            ->willReturn(self::$jsonEmail);
+            ->willReturn(Utils::streamFor(self::$jsonEmail));
 
         /** @var MockObject&ClientInterface $client */
         $client = $this->getMockBuilder(Client::class)
