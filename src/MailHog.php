@@ -221,7 +221,7 @@ class MailHog extends Module
      *
      * @return array Headers
      */
-    public function grabHeadersFromEmail()
+    public function grabHeadersFromEmail(): array
     {
         $email = $this->getOpenedEmail();
         if (isset($email->Content->Headers)) {
