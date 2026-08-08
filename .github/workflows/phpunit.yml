@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v7"
         with:
           fetch-depth: 2
 
@@ -53,7 +53,9 @@ jobs:
         run: "composer update --prefer-lowest --prefer-dist --no-interaction --no-progress"
 
       - name: "Show resolved HTTP stack"
-        run: "composer show guzzlehttp/guzzle guzzlehttp/psr7"
+        run: |
+          composer show guzzlehttp/guzzle
+          composer show guzzlehttp/psr7
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit"
