@@ -10,20 +10,26 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
 
+    name: "PHP ${{ matrix.php-version }} / Guzzle ${{ matrix.guzzle }} / ${{ matrix.dependencies }}"
+
     strategy:
+      fail-fast: false
       matrix:
         php-version:
-          - "8.1"
           - "8.2"
           - "8.3"
           - "8.4"
+          - "8.5"
         dependencies:
           - "highest"
           - "lowest"
+        guzzle:
+          - "7"
+          - "8"
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -35,6 +41,9 @@ jobs:
           ini-values: memory_limit=-1
           tools: composer:v2
 
+      - name: "Pin Guzzle major version"
+        run: "composer require --no-update --no-interaction guzzlehttp/guzzle:\"^${{ matrix.guzzle }}.0\""
+
       - name: "Install dependencies (highest)"
         if: ${{ matrix.dependencies == 'highest' }}
         run: "composer update --prefer-dist --no-interaction --no-progress"
@@ -42,6 +51,9 @@ jobs:
       - name: "Install dependencies (lowest)"
         if: ${{ matrix.dependencies == 'lowest' }}
         run: "composer update --prefer-lowest --prefer-dist --no-interaction --no-progress"
+
+      - name: "Show resolved HTTP stack"
+        run: "composer show guzzlehttp/guzzle guzzlehttp/psr7"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit"
