@@ -8,7 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\AssertionFailedError;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
@@ -17,7 +17,7 @@ class MailHogTest extends TestCase
     private const URL = 'http://test';
     private const PORT = 8888;
 
-    private static $jsonEmail = <<<JSON
+    private static string $jsonEmail = <<<JSON
 [
   {
     "ID": 1,
@@ -52,23 +52,15 @@ class MailHogTest extends TestCase
 ]
 JSON;
 
-    /** @var MockObject&MailHog */
-    private $mailHog;
+    private MailHog $mailHog;
 
     public function testFetchEmailsPositive(): void
     {
-        /** @var MockObject&ResponseInterface $response */
-        $response = $this->getMockBuilder(ResponseInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $response = $this->createMock(ResponseInterface::class);
         $response->expects(self::atLeastOnce())
             ->method('getBody')
             ->willReturn(Utils::streamFor(self::$jsonEmail));
-
-        /** @var MockObject&ClientInterface $client */
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $client = $this->createMock(Client::class);
         $client->expects(self::atLeastOnce())
             ->method('request')
             ->with('GET', '/api/v1/messages')
@@ -83,10 +75,7 @@ JSON;
 
     public function testFetchEmailsNegative(): void
     {
-        /** @var MockObject&ClientInterface $client */
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $client = $this->createMock(Client::class);
         $client->expects(self::atLeastOnce())
             ->method('request')
             ->with('GET', '/api/v1/messages')
@@ -104,9 +93,8 @@ JSON;
      * @param string $address
      * @param string $emails
      * @param array $inbox
-     *
-     * @dataProvider dataAccessInboxFor
      */
+    #[DataProvider('dataAccessInboxFor')]
     public function testAccessInboxFor(string $address, string $emails, array $inbox): void
     {
         $this->mailHog->setFetchedEmails($emails);
@@ -116,7 +104,7 @@ JSON;
         self::assertEquals($inbox, $this->mailHog->getUnreadInbox());
     }
 
-    public function dataAccessInboxFor(): iterable
+    public static function dataAccessInboxFor(): iterable
     {
         $address1 = 'other-address@mail.ru';
         $email = self::$jsonEmail;
@@ -141,9 +129,8 @@ JSON;
      * @param string $address
      * @param string $emails
      * @param array $inbox
-     *
-     * @dataProvider dataAccessInboxForTo
      */
+    #[DataProvider('dataAccessInboxForTo')]
     public function testAccessInboxForTo(string $address, string $emails, array $inbox): void
     {
         $this->mailHog->setFetchedEmails($emails);
@@ -153,7 +140,7 @@ JSON;
         self::assertEquals($inbox, $this->mailHog->getUnreadInbox());
     }
 
-    public function dataAccessInboxForTo(): iterable
+    public static function dataAccessInboxForTo(): iterable
     {
         $address1 = 'other-address@mail.ru';
         $email = self::$jsonEmail;
@@ -170,9 +157,8 @@ JSON;
      * @param string $address
      * @param string $emails
      * @param array $inbox
-     *
-     * @dataProvider dataAccessInboxForCc
      */
+    #[DataProvider('dataAccessInboxForCc')]
     public function testAccessInboxForCc(string $address, string $emails, array $inbox): void
     {
         $this->mailHog->setFetchedEmails($emails);
@@ -182,7 +168,7 @@ JSON;
         self::assertEquals($inbox, $this->mailHog->getUnreadInbox());
     }
 
-    public function dataAccessInboxForCc(): iterable
+    public static function dataAccessInboxForCc(): iterable
     {
         $address1 = 'other-address@mail.ru';
         $email = self::$jsonEmail;
@@ -199,9 +185,8 @@ JSON;
      * @param string $address
      * @param string $emails
      * @param array $inbox
-     *
-     * @dataProvider dataAccessInboxForBcc
      */
+    #[DataProvider('dataAccessInboxForBcc')]
     public function testAccessInboxForBcc(string $address, string $emails, array $inbox): void
     {
         $this->mailHog->setFetchedEmails($emails);
@@ -211,7 +196,7 @@ JSON;
         self::assertEquals($inbox, $this->mailHog->getUnreadInbox());
     }
 
-    public function dataAccessInboxForBcc(): iterable
+    public static function dataAccessInboxForBcc(): iterable
     {
         $address1 = 'other-address@mail.ru';
         $email = self::$jsonEmail;
@@ -226,14 +211,8 @@ JSON;
 
     public function testDeleteAllEmailsPositive(): void
     {
-        /** @var MockObject&ResponseInterface $response */
-        $response = $this->getMockBuilder(ResponseInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        /** @var MockObject&ClientInterface $client */
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $response = $this->createStub(ResponseInterface::class);
+        $client = $this->createMock(Client::class);
         $client->expects(self::atLeastOnce())
             ->method('request')
             ->with('DELETE', '/api/v1/messages')
@@ -245,10 +224,7 @@ JSON;
 
     public function testDeleteAllEmailsNegative(): void
     {
-        /** @var MockObject&ClientInterface $client */
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $client = $this->createMock(Client::class);
         $client->expects(self::atLeastOnce())
             ->method('request')
             ->with('DELETE', '/api/v1/messages')
@@ -265,19 +241,11 @@ JSON;
     public function testOpenNextUnreadEmailPositive(): void
     {
         $this->mailHog->setUnreadInbox(json_decode(self::$jsonEmail, false));
-
-        /** @var MockObject&ResponseInterface $response */
-        $response = $this->getMockBuilder(ResponseInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $response = $this->createMock(ResponseInterface::class);
         $response->expects(self::atLeastOnce())
             ->method('getBody')
             ->willReturn(Utils::streamFor(self::$jsonEmail));
-
-        /** @var MockObject&ClientInterface $client */
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $client = $this->createMock(Client::class);
         $client->expects(self::atLeastOnce())
             ->method('request')
             ->with('GET', '/api/v1/messages/1')
@@ -303,19 +271,11 @@ JSON;
     public function testGrabHeaders(): void
     {
         $this->mailHog->setUnreadInbox(json_decode(self::$jsonEmail, false));
-
-        /** @var MockObject&ResponseInterface $response */
-        $response = $this->getMockBuilder(ResponseInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $response = $this->createMock(ResponseInterface::class);
         $response->expects(self::atLeastOnce())
             ->method('getBody')
             ->willReturn(Utils::streamFor(json_encode(json_decode(self::$jsonEmail)[0])));
-
-        /** @var MockObject&ClientInterface $client */
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $client = $this->createMock(Client::class);
         $client->expects(self::atLeastOnce())
             ->method('request')
             ->with('GET', '/api/v1/messages/1')
@@ -332,11 +292,7 @@ JSON;
     protected function setUp(): void
     {
         parent::setUp();
-
-        /** @var MockObject&ModuleContainer $mockContainer */
-        $mockContainer = $this->getMockBuilder(ModuleContainer::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mockContainer = $this->createStub(ModuleContainer::class);
         $params = [
             'url' => self::URL,
             'port' => self::PORT,
