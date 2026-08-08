@@ -67,7 +67,8 @@ class MailHog extends Module
     {
         $url = trim($this->config['url'], '/') . ':' . $this->config['port'];
 
-        $config = ['base_uri' => $url, 'timeout' => $this->config['timeout'] ?? 1];
+        // Guzzle 8 validates the option type, so a string from the suite config must be cast
+        $config = ['base_uri' => $url, 'timeout' => (float)($this->config['timeout'] ?? 1)];
         if (isset($this->config['guzzleRequestOptions']) && is_array($this->config['guzzleRequestOptions'])) {
             foreach ($this->config['guzzleRequestOptions'] as $option => $value) {
                 $config[$option] = $value;
