@@ -2,16 +2,25 @@
 
 This Codeception Module implements the required methods to test emails using the [Codeception Email Testing Framework][CodeceptionEmailTestingFramework] with [MailHog]
 
+### Requirements
+- PHP 8.2 or newer
+- Codeception 5
+- `guzzlehttp/guzzle` 7 or 8
+
+The traits of the [Codeception Email Testing Framework][CodeceptionEmailTestingFramework] are bundled with this package, so no separate dependency is needed. They keep their original `Codeception\Email\` namespace.
+
 ### Installation
 Through composer, require the package:
-```
-"require-dev": {
-    "oqq/codeception-email-mailhog": "^2.0"
+```json
+{
+    "require-dev": {
+        "zdenekgebauer/codeception-email-mailhog": "^4.0"
+    }
 }
 ```
 Then turn it on in your Codeception suite yaml file
-```
-class_name: FunctionalTester
+```yaml
+actor: FunctionalTester
 modules:
     enabled:
         - MailHog
@@ -20,9 +29,18 @@ modules:
             url: 'http://mailhog.dev'
             port: '8025'
 ```
-Additional parameters can be fed directly to the Guzzle connection using the `guzzleRequestOptions` variable.
 
-The variable `deleteEmailsAfterScenario` can be set to true to ensure that all emails are deleted at the end of each scenario, but it is turned off by default.
+### Configuration
+`url` and `port` are required, everything else is optional:
+
+| Key                         | Default | Description                                                   |
+|-----------------------------|---------|---------------------------------------------------------------|
+| `url`                       |         | Base URL of the MailHog HTTP API                              |
+| `port`                      |         | Port of the MailHog HTTP API                                  |
+| `timeout`                   | `1`     | Request timeout in seconds, passed to Guzzle                  |
+| `guzzleRequestOptions`      |         | Additional parameters fed directly to the Guzzle connection   |
+| `deleteEmailsAfterScenario` | `false` | When true, all emails are deleted at the end of each scenario |
+
 ### Added Methods
 This Module adds a few public methods for the user, such as:
 ```
@@ -36,7 +54,19 @@ Fetches all email headers from MailHog, sorts them by timestamp and assigns them
 ```
 accessInboxFor($address)
 ```
-Filters emails to only keep those that are received by the provided address
+Filters emails to only keep those that are received by the provided address, in either the To, CC or BCC field
+```
+accessInboxForTo($address)
+```
+Filters emails to only keep those that have the provided address in the To field
+```
+accessInboxForCc($address)
+```
+Filters emails to only keep those that have the provided address in the CC field
+```
+accessInboxForBcc($address)
+```
+Filters emails to only keep those that have the provided address in the BCC field
 ```
 openNextUnreadEmail()
 ```
@@ -46,10 +76,9 @@ grabHeadersFromEmail()
 ```
 Grabs headers from the opened email and returns them as an array
 
-
 ### Example Test
 Here is a simple scenario where we test the content of an email.  For a detailed list of all available test methods, please refer to the [Codeception Email Testing Framework][CodeceptionEmailTestingFramework].
-```
+```php
 <?php
 $I = new FunctionalTester($scenario);
 $I->am('a member');
@@ -106,5 +135,3 @@ THE SOFTWARE.
 
    [MailHog]: https://github.com/mailhog/MailHog
    [CodeceptionEmailTestingFramework]: https://github.com/ericmartel/codeception-email
-   
-

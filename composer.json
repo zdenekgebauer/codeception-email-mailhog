@@ -19,8 +19,10 @@
     "require": {
         "php": "^8.2",
         "ext-json": "*",
-        "ericmartel/codeception-email": "^1.0.3",
         "guzzlehttp/guzzle": "^7.0 | ^8.0"
+    },
+    "replace": {
+        "ericmartel/codeception-email": "^1.0"
     },
     "require-dev": {
         "codeception/codeception": "^5.3",
@@ -34,6 +36,7 @@
     },
     "autoload": {
         "psr-4": {
+            "Codeception\\Email\\": "src/Email",
             "Codeception\\Module\\": "src"
         }
     },
