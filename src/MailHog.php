@@ -14,6 +14,7 @@ use Codeception\Email\EmailServiceProvider;
 use Codeception\Email\TestsEmails;
 use Codeception\Module;
 use Codeception\TestInterface;
+use DateTimeImmutable;
 use Exception;
 use GuzzleHttp\Client;
 
@@ -103,7 +104,7 @@ class MailHog extends Module
         } catch (Exception $e) {
             $this->fail('Exception: ' . $e->getMessage());
         }
-        $this->sortEmails($this->fetchedEmails);
+        $this->fetchedEmails = $this->sortEmails($this->fetchedEmails);
 
         // by default, work on all emails
         $this->setCurrentInbox($this->fetchedEmails);
@@ -517,19 +518,23 @@ class MailHog extends Module
     /**
      * Sort Emails.
      *
-     * Sorts the inbox based on the timestamp
+     * Sorts the inbox based on the timestamp, newest first
      *
      * @param array $inbox Inbox to sort
+     *
+     * @return array Sorted inbox
      */
-    protected function sortEmails($inbox): void
+    protected function sortEmails(array $inbox): array
     {
         usort($inbox, [$this, 'sortEmailsByCreationDatePredicate']);
+
+        return $inbox;
     }
 
     /**
-     * Get Email To.
+     * Sort Emails By Creation Date Predicate.
      *
-     * Returns the string containing the persons included in the To field
+     * Compares the send time of two emails, an email without a usable send time goes last
      *
      * @param mixed $emailA Email
      * @param mixed $emailB Email
@@ -538,9 +543,47 @@ class MailHog extends Module
      */
     protected static function sortEmailsByCreationDatePredicate($emailA, $emailB): int
     {
-        $sortKeyA = $emailA->Content->Headers->Date;
-        $sortKeyB = $emailB->Content->Headers->Date;
+        $sortKeyA = self::getEmailSendTime($emailA);
+        $sortKeyB = self::getEmailSendTime($emailB);
 
-        return ($sortKeyA > $sortKeyB) ? -1 : 1;
+        if ($sortKeyA === null || $sortKeyB === null) {
+            return ($sortKeyA === null ? 1 : 0) - ($sortKeyB === null ? 1 : 0);
+        }
+
+        return $sortKeyB <=> $sortKeyA;
+    }
+
+    /**
+     * @param mixed $email Email
+     *
+     * @return DateTimeImmutable|null Send time, null when it cannot be determined
+     */
+    private static function getEmailSendTime($email): ?DateTimeImmutable
+    {
+        $value = $email->Content->Headers->Date ?? null;
+        if (is_array($value)) {
+            $value = $value[0] ?? null;
+        }
+        if (!is_string($value)) {
+            return null;
+        }
+
+        // the weekday name is redundant in RFC 2822 and PHP treats a mismatching one as a relative offset
+        $commaPosition = strpos($value, ',');
+        if ($commaPosition !== false) {
+            $value = substr($value, $commaPosition + 1);
+        }
+
+        $sendTime = DateTimeImmutable::createFromFormat('j M Y H:i:s O', trim($value));
+        if ($sendTime === false) {
+            return null;
+        }
+
+        $errors = DateTimeImmutable::getLastErrors();
+        if ($errors !== false && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
+            return null;
+        }
+
+        return $sendTime;
     }
 }
