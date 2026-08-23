@@ -14,7 +14,7 @@ Through composer, require the package:
 ```json
 {
     "require-dev": {
-        "zdenekgebauer/codeception-email-mailhog": "^4.0"
+        "zdenekgebauer/codeception-email-mailhog": "^5.0"
     }
 }
 ```
